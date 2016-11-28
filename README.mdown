@@ -12,7 +12,7 @@ or to the multiplatform nature of this project.
 
 ## API Reference
 
-Please look [here](https://silvia-lara.github.io/polistone) for the game guide and developer guide and inside the `javadocs` folder for the detailed Javadocs.
+Please look [here](https://silvia-lara.github.io/Polistone) for the game guide and developer guide and inside the `javadocs` folder for the detailed Javadocs.
 
 ## Motivation
 
