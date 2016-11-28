@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.scene.layout.*?>
+
+<GridPane alignment="center" hgap="10" vgap="10" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <BorderPane prefHeight="720" prefWidth="1280" style="-fx-background-color: #000;">
+            <center>
+                <Pane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+                    <children>
+                        <Text fx:id="endGameText" fill="WHITE" layoutX="350.0" layoutY="219.0" strokeType="OUTSIDE" strokeWidth="0.0" text="You won!" textAlignment="CENTER" wrappingWidth="590.5068359375">
+                            <font>
+                                <Font name="Copperplate" size="96.0" />
+                            </font>
+                        </Text>
+                        <Button fx:id="exitGameBtn" layoutX="606.0" layoutY="335.0" mnemonicParsing="false" onMouseClicked="#exitGame" text="Exit Game">
+                     <cursor>
+                        <Cursor fx:constant="HAND" />
+                     </cursor></Button>
+                    </children>
+                </Pane>
+            </center></BorderPane>
+    </children>
+    <columnConstraints>
+        <ColumnConstraints />
+    </columnConstraints>
+    <rowConstraints>
+        <RowConstraints />
+    </rowConstraints>
+</GridPane>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.geometry.Rectangle2D?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.text.*?>
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="190.0" prefWidth="133.0" scaleX="0.8" scaleY="0.8" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <ImageView fx:id="cardImage" fitHeight="190.0" fitWidth="133.0" layoutX="5.0" layoutY="5.0" pickOnBounds="true" preserveRatio="true">
+            <image>
+                <Image url="@../../vendor/assets/spells/sexual_scandal.png" />
+            </image>
+        </ImageView>
+        <ImageView fx:id="cardBase" fitHeight="190.0" fitWidth="133.0" pickOnBounds="true" preserveRatio="true">
+            <image>
+                <Image url="@../../vendor/assets/spell_card_base.png" />
+            </image>
+            <viewport>
+                <Rectangle2D />
+            </viewport>
+        </ImageView>
+        <Text fx:id="spellCost" fill="WHITE" layoutX="-11.0" layoutY="35.0" onMouseClicked="#cardClicked" stroke="BLACK" strokeType="OUTSIDE" strokeWidth="2.0" text="10" textAlignment="CENTER" wrappingWidth="65.7879638671875">
+            <font>
+                <Font name="Copperplate" size="28.0" />
+            </font>
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+        </Text>
+        <Text fx:id="spellName" fill="WHITE" layoutX="-71.0" layoutY="105.0" stroke="BLACK" strokeType="OUTSIDE" text="Some name" textAlignment="CENTER" wrappingWidth="279.83142471313477">
+            <font>
+                <Font name="Arial Bold" size="10.0" />
+            </font>
+        </Text>
+        <Text fx:id="spellDescription" layoutX="25.0" layoutY="135.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Text" textAlignment="CENTER" wrappingWidth="82.23494815826416">
+            <font>
+                <Font name="Arial Bold" size="8.0" />
+            </font>
+        </Text>
+      <Pane fx:id="targetingCardOverlayPane" layoutX="-4.0" layoutY="48.0" prefHeight="152.0" prefWidth="138.0">
+         <children>
+            <Button fx:id="targetHero" disable="true" layoutX="36.0" layoutY="3.0" mnemonicParsing="false" onMouseClicked="#setTargetHero" pickOnBounds="false" prefHeight="25.0" prefWidth="25.0" style="-fx-background-color: #fff;" text="H">
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor></Button>
+            <Button fx:id="targetOne" disable="true" layoutX="78.0" layoutY="3.0" mnemonicParsing="false" onMouseClicked="#setTargetOne" prefHeight="25.0" prefWidth="25.0" style="-fx-background-color: #fff;" text="1">
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor>
+               <opaqueInsets>
+                  <Insets />
+               </opaqueInsets></Button>
+            <Button fx:id="targetTwo" disable="true" layoutX="37.0" layoutY="34.0" mnemonicParsing="false" onMouseClicked="#setTargetTwo" style="-fx-background-color: #fff;" text="2">
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor></Button>
+            <Button fx:id="targetThree" disable="true" layoutX="78.0" layoutY="34.0" mnemonicParsing="false" onMouseClicked="#setTargetThree" style="-fx-background-color: #fff;" text="3">
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor></Button>
+            <Button fx:id="targetFive" disable="true" layoutX="78.0" layoutY="67.0" mnemonicParsing="false" onMouseClicked="#setTargetFive" style="-fx-background-color: #fff;" text="5">
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor></Button>
+            <Button fx:id="targetFour" disable="true" layoutX="37.0" layoutY="67.0" mnemonicParsing="false" onMouseClicked="#setTargetFour" style="-fx-background-color: #fff;" text="4">
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor></Button>
+            <Button fx:id="targetSeven" disable="true" layoutX="79.0" layoutY="100.0" mnemonicParsing="false" onMouseClicked="#setTargetSeven" style="-fx-background-color: #fff;" text="7">
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor></Button>
+            <Button fx:id="targetSix" disable="true" layoutX="37.0" layoutY="100.0" mnemonicParsing="false" onMouseClicked="#setTargetSix" style="-fx-background-color: #fff;" text="6">
+               <cursor>
+                  <Cursor fx:constant="HAND" />
+               </cursor></Button>
+         </children>
+      </Pane>
+    </children>
+</Pane>

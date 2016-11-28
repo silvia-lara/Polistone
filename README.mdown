@@ -1,0 +1,25 @@
+## Synopsis
+Polistone was built to fulfill the final project requirement for YSC3207, a course taken at Yale-NUS College.
+
+## Installation
+Inside the cardGen folder, run `make cardGenMain && ./cardGenMain` to generate the deck file.
+
+Run with the provided .jar file inside the polistone-gui folder. 
+`java -jar polistone-gui.jar` 
+
+Since I was not able to fine tune the JavaFX performance, the user might experience some lagging. This might be due to the high dimension of the pictures used, 
+or to the multiplatform nature of this project.
+
+## API Reference
+
+Please look [here](https://silvia-lara.github.io/polistone) for the game guide and developer guide and inside the `javadocs` folder for the detailed Javadocs.
+
+## Motivation
+
+50% of my grade, and:
+
+Following the model of Hearthstone, Polistone tries to link it to the 2016 US election. The Heros will be Hillary Clinton and Donald Trump and the player will fight an AI (still to be improved)using democratic and republican minions.
+
+## Tests
+
+You can run the C tests by running `make test` inside the cardGen folder.
