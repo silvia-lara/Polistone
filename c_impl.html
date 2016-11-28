@@ -1,0 +1,264 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>C Implementation &#8212; Polistone 0.1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="Polistone 0.1.0.0 documentation" href="index.html" />
+    <link rel="next" title="Java Implementation" href="java_impl.html" />
+    <link rel="prev" title="Game Guide" href="game_guide.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="c-implementation">
+<h1>C Implementation<a class="headerlink" href="#c-implementation" title="Permalink to this headline">¶</a></h1>
+<p>There are three main functions implemented in C, that together generate the deck.json.</p>
+<p><strong>To compile, run make ./cardGenMain</strong></p>
+<div class="section" id="card-c-features">
+<h2>Card.c Features<a class="headerlink" href="#card-c-features" title="Permalink to this headline">¶</a></h2>
+<p>In Card.c we create the cards we are going to play with. Each card can either be a spell or a creature card. Spell cards and creature cards hold different properties, and therefore, different fields.
+What they hold in common is modelled in the Card struct:</p>
+<div class="highlight-C"><div class="highlight"><pre><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="n">CARD</span> <span class="p">{</span>
+  <span class="n">CARD_TYPE</span> <span class="n">type</span><span class="p">;</span>
+  <span class="n">CARD_FAMILY</span> <span class="n">family</span><span class="p">;</span>
+  <span class="kt">char</span> <span class="n">name</span><span class="p">[</span><span class="n">NAME_SIZE</span><span class="p">];</span>
+  <span class="kt">char</span> <span class="n">description</span><span class="p">[</span><span class="n">DESCRIPTION_SIZE</span><span class="p">];</span>
+  <span class="kt">char</span> <span class="n">image</span><span class="p">[</span><span class="n">NAME_SIZE</span><span class="p">];</span>
+  <span class="kt">unsigned</span> <span class="kt">short</span> <span class="kt">int</span> <span class="n">cost</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>This is the structure of any Spell Card:</p>
+<div class="highlight-C"><div class="highlight"><pre><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="n">SPELL_PROPS</span><span class="p">{</span>
+  <span class="n">EFFECT_TARGET</span> <span class="n">target</span><span class="p">;</span>
+  <span class="n">SPELL_EFFECT</span> <span class="n">effect</span><span class="p">;</span>
+  <span class="kt">short</span> <span class="kt">int</span> <span class="n">magnitude</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">SPELL_PROPS</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>This is the structure of any Creature Card:</p>
+<div class="highlight-C"><div class="highlight"><pre><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="n">CREATURE_PROPS</span> <span class="p">{</span>
+      <span class="kt">short</span> <span class="kt">int</span> <span class="n">health</span><span class="p">;</span>
+      <span class="kt">short</span> <span class="kt">int</span> <span class="n">attack</span><span class="p">;</span>
+
+      <span class="n">CREATURE_EFFECT</span> <span class="n">effect</span><span class="p">;</span>
+      <span class="n">EFFECT_TARGET</span> <span class="n">target</span><span class="p">;</span>
+      <span class="n">EFFECT_TYPE</span> <span class="n">type</span><span class="p">;</span>
+      <span class="kt">short</span> <span class="kt">int</span> <span class="n">magnitude</span><span class="p">;</span>
+    <span class="p">}</span> <span class="n">CREATURE_PROPS</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Once the struct for each card is created, we generate each class of cards: democrat spells, republican spells, common spells, spell cards, democrat creatures, republican creatures, common creatures, creature cards.</p>
+<p>Spells and Creatures are devided into Low, Medium and High cost ones. Each card is generated in its own group. The following is an exerpt of code generating a low cost republican spell:</p>
+<div class="highlight-C"><div class="highlight"><pre><span></span><span class="kt">void</span> <span class="nf">generate_republican_spell</span><span class="p">(</span><span class="n">CARD</span><span class="o">*</span> <span class="n">holder</span><span class="p">,</span> <span class="n">CARD_STRENGTH</span> <span class="n">strn</span><span class="p">,</span> <span class="kt">int</span> <span class="n">cardCost</span><span class="p">){</span>
+<span class="kt">int</span> <span class="n">budget</span> <span class="o">=</span> <span class="p">(</span><span class="n">cardCost</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">//budget to distribute betweeh Health and //Attack points</span>
+  <span class="kt">int</span> <span class="n">toss</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="c1">//random number</span>
+  <span class="kt">char</span> <span class="n">buffer</span><span class="p">[</span><span class="n">DESCRIPTION_SIZE</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+  <span class="n">holder</span><span class="o">-&gt;</span><span class="n">family</span> <span class="o">=</span> <span class="n">REPUBLICANS</span><span class="p">;</span>
+  <span class="k">switch</span><span class="p">(</span><span class="n">strn</span><span class="p">){</span>
+        <span class="n">Case</span> <span class="nl">LOW</span><span class="p">:</span>
+                <span class="n">toss</span> <span class="o">=</span> <span class="n">rand_range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">);</span>
+                <span class="k">if</span><span class="p">(</span><span class="n">toss</span> <span class="o">==</span> <span class="mi">1</span><span class="p">){</span>
+                  <span class="n">stpncpy</span><span class="p">(</span><span class="n">holder</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">,</span> <span class="s">&quot;Fox News Interview&quot;</span><span class="p">,</span> <span class="n">NAME_SIZE</span><span class="p">);</span>
+                  <span class="n">sprintf</span><span class="p">(</span>
+                      <span class="n">buffer</span><span class="p">,</span>
+                      <span class="s">&quot;Leaves enemy speechless, &quot;</span>
+                      <span class="s">&quot;attacking the Hero for  &quot;</span>
+                      <span class="s">&quot;%d damage&quot;</span>               <span class="p">,</span>
+                      <span class="p">(</span><span class="kt">short</span> <span class="kt">int</span><span class="p">)</span><span class="n">ceil</span><span class="p">(</span><span class="n">budget</span><span class="o">/</span><span class="mf">2.0</span><span class="p">));</span>
+                  <span class="n">stpncpy</span><span class="p">(</span><span class="n">holder</span><span class="o">-&gt;</span><span class="n">description</span><span class="p">,</span> <span class="n">buffer</span><span class="p">,</span> <span class="n">DESCRIPTION_SIZE</span><span class="p">);</span>
+                  <span class="n">stpncpy</span><span class="p">(</span><span class="n">holder</span><span class="o">-&gt;</span><span class="n">image</span><span class="p">,</span> <span class="s">&quot;fox_news.png&quot;</span><span class="p">,</span> <span class="n">NAME_SIZE</span><span class="p">);</span>
+                  <span class="n">holder</span><span class="o">-&gt;</span><span class="n">spell_props</span><span class="p">.</span><span class="n">target</span> <span class="o">=</span> <span class="n">ENEMY_HERO</span><span class="p">;</span>
+                  <span class="n">holder</span><span class="o">-&gt;</span><span class="n">spell_props</span><span class="p">.</span><span class="n">effect</span> <span class="o">=</span> <span class="n">SPELL_EFFECT_DAMAGE</span><span class="p">;</span>
+                  <span class="n">holder</span><span class="o">-&gt;</span><span class="n">spell_props</span><span class="p">.</span><span class="n">magnitude</span> <span class="o">=</span> <span class="p">(</span><span class="kt">short</span> <span class="kt">int</span><span class="p">)</span><span class="n">ceil</span><span class="p">(</span><span class="n">budget</span><span class="o">/</span><span class="mf">2.0</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>A similar creation code is used to generate the other cards.</p>
+<p>Instead, to generate a general creature card, the following general structure is used:</p>
+<div class="highlight-C"><div class="highlight"><pre><span></span><span class="kt">void</span> <span class="nf">generate_creature_card</span><span class="p">(</span><span class="n">CARD</span><span class="o">*</span> <span class="n">holder</span><span class="p">,</span> <span class="n">CARD_FAMILY</span> <span class="n">family</span><span class="p">,</span> <span class="n">CARD_STRENGTH</span> <span class="n">strn</span><span class="p">){</span>
+  <span class="kt">int</span> <span class="n">cardCost</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="k">switch</span><span class="p">(</span><span class="n">strn</span><span class="p">){</span>
+    <span class="k">case</span> <span class="nl">LOW</span>  <span class="p">:</span> <span class="p">{</span> <span class="n">cardCost</span> <span class="o">=</span> <span class="n">rand_range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">);</span> <span class="n">assert</span> <span class="p">(</span><span class="n">cardCost</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">cardCost</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">);</span> <span class="p">}</span> <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="nl">MED</span>  <span class="p">:</span> <span class="p">{</span> <span class="n">cardCost</span> <span class="o">=</span> <span class="n">rand_range</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="mi">7</span><span class="p">);</span> <span class="n">assert</span> <span class="p">(</span><span class="n">cardCost</span> <span class="o">&gt;</span> <span class="mi">3</span> <span class="o">&amp;&amp;</span> <span class="n">cardCost</span> <span class="o">&lt;</span> <span class="mi">8</span><span class="p">);</span> <span class="p">}</span> <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="nl">HIGH</span> <span class="p">:</span> <span class="p">{</span> <span class="n">cardCost</span> <span class="o">=</span> <span class="n">rand_range</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span><span class="mi">10</span><span class="p">);</span> <span class="n">assert</span> <span class="p">(</span><span class="n">cardCost</span> <span class="o">&gt;</span> <span class="mi">7</span> <span class="o">&amp;&amp;</span> <span class="n">cardCost</span> <span class="o">&lt;</span> <span class="mi">11</span><span class="p">);</span> <span class="p">}</span> <span class="k">break</span><span class="p">;</span>
+  <span class="p">};</span>
+  <span class="n">holder</span><span class="o">-&gt;</span><span class="n">type</span> <span class="o">=</span> <span class="n">CREATURE</span><span class="p">;</span>
+  <span class="n">holder</span><span class="o">-&gt;</span><span class="n">cost</span> <span class="o">=</span> <span class="n">cardCost</span><span class="p">;</span>
+  <span class="n">holder</span><span class="o">-&gt;</span><span class="n">spell_props</span> <span class="o">=</span> <span class="n">emptySpellProp</span><span class="p">;</span>
+  <span class="k">switch</span><span class="p">(</span><span class="n">family</span><span class="p">){</span>
+    <span class="k">case</span> <span class="nl">DEMOCRATS</span>   <span class="p">:</span> <span class="n">generate_democrat_creature</span><span class="p">(</span><span class="n">holder</span><span class="p">,</span> <span class="n">strn</span><span class="p">,</span> <span class="n">cardCost</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="nl">REPUBLICANS</span> <span class="p">:</span> <span class="n">generate_republican_creature</span><span class="p">(</span><span class="n">holder</span><span class="p">,</span> <span class="n">strn</span><span class="p">,</span> <span class="n">cardCost</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="nl">COMMON</span>      <span class="p">:</span> <span class="n">generate_common_creature</span><span class="p">(</span><span class="n">holder</span><span class="p">,</span> <span class="n">strn</span><span class="p">,</span> <span class="n">cardCost</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="main-c">
+<h2>Main.c :<a class="headerlink" href="#main-c" title="Permalink to this headline">¶</a></h2>
+<p>Main.c takes the cards that card.c generated and returns complete decks encoded in json. The following function generates the deck deciding the composition of each deck, considering the cost category of each card, the family and whether the card is a spell or a creature card.</p>
+<div class="highlight-C"><div class="highlight"><pre><span></span><span class="n">CARD</span><span class="o">*</span> <span class="nf">generate_deck</span><span class="p">(</span><span class="n">CARD_FAMILY</span> <span class="n">family</span><span class="p">){</span>
+  <span class="n">CARD</span><span class="o">*</span> <span class="n">cards</span> <span class="o">=</span> <span class="n">calloc</span><span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="k">sizeof</span> <span class="p">(</span><span class="n">CARD</span><span class="p">));</span>
+  <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="cm">/* Allocation strategy, 10 spells, 20 creatures */</span>
+
+  <span class="cm">/* Allocate cards */</span>
+  <span class="k">for</span><span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">30</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">){</span>
+    <span class="cm">/* allocate spells */</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">i</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">){</span>
+      <span class="cm">/* 3 spells common, 7 family specific */</span>
+      <span class="cm">/* of the 7 family spells, make 3 low power, 2 med power and 2 high power */</span>
+      <span class="k">if</span><span class="p">(</span><span class="n">i</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">){</span>
+        <span class="n">generate_spell_card</span><span class="p">(</span><span class="n">cards</span> <span class="o">+</span> <span class="n">i</span><span class="p">,</span> <span class="n">COMMON</span><span class="p">,</span>
+            <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="o">?</span> <span class="nl">LOW</span> <span class="p">:</span> <span class="n">MED</span><span class="p">);</span>
+      <span class="p">}</span><span class="k">else</span><span class="p">{</span>
+        <span class="n">generate_spell_card</span><span class="p">(</span><span class="n">cards</span> <span class="o">+</span> <span class="n">i</span><span class="p">,</span> <span class="n">family</span><span class="p">,</span>
+            <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">6</span> <span class="o">?</span> <span class="nl">LOW</span> <span class="p">:</span> <span class="p">(</span><span class="n">i</span> <span class="o">&lt;</span> <span class="mi">8</span> <span class="o">?</span> <span class="nl">MED</span> <span class="p">:</span> <span class="n">HIGH</span><span class="p">));</span>
+      <span class="p">}</span>
+    <span class="p">}</span><span class="k">else</span><span class="p">{</span>
+      <span class="cm">/* of 20 creatures, make 5 common, 15 of the family type */</span>
+      <span class="k">if</span><span class="p">(</span><span class="n">i</span> <span class="o">&lt;</span> <span class="mi">15</span><span class="p">){</span>
+        <span class="cm">/* of the 5 common, make 3 low and 2 med */</span>
+        <span class="n">generate_creature_card</span><span class="p">(</span><span class="n">cards</span> <span class="o">+</span> <span class="n">i</span><span class="p">,</span> <span class="n">COMMON</span><span class="p">,</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">13</span> <span class="o">?</span> <span class="nl">LOW</span> <span class="p">:</span> <span class="n">MED</span><span class="p">);</span>
+      <span class="p">}</span><span class="k">else</span><span class="p">{</span>
+        <span class="cm">/* of the 15 family cards, make 7 common, 5 med, 3 high */</span>
+        <span class="n">generate_creature_card</span><span class="p">(</span><span class="n">cards</span> <span class="o">+</span> <span class="n">i</span><span class="p">,</span> <span class="n">family</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">i</span> <span class="o">&lt;</span> <span class="mi">22</span> <span class="o">?</span> <span class="nl">LOW</span> <span class="p">:</span> <span class="p">(</span><span class="n">i</span> <span class="o">&lt;</span> <span class="mi">27</span> <span class="o">?</span> <span class="nl">MED</span> <span class="p">:</span> <span class="n">HIGH</span><span class="p">)));</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+
+  <span class="n">shuffle_deck</span><span class="p">(</span><span class="n">cards</span><span class="p">);</span>
+  <span class="k">return</span> <span class="n">cards</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The cards are then shuffled:</p>
+<div class="highlight-C"><div class="highlight"><pre><span></span><span class="kt">void</span> <span class="nf">shuffle_deck</span><span class="p">(</span><span class="n">CARD</span><span class="o">*</span> <span class="n">deck</span><span class="p">){</span>
+  <span class="cm">/* fisher yates shuffle */</span>
+  <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="n">CARD</span> <span class="n">temp</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">};</span>
+
+  <span class="k">for</span><span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">29</span><span class="p">;</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span><span class="o">--</span><span class="p">){</span>
+    <span class="n">j</span> <span class="o">=</span> <span class="n">rand_int</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">);</span>
+    <span class="n">temp</span> <span class="o">=</span> <span class="n">deck</span><span class="p">[</span><span class="n">j</span><span class="p">];</span>
+    <span class="n">deck</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">deck</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+    <span class="n">deck</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The deck is encoded a json file by other helper functions included in this file.</p>
+</div>
+<div class="section" id="json-c">
+<h2>Json.c :<a class="headerlink" href="#json-c" title="Permalink to this headline">¶</a></h2>
+<p>This file contains a json parser found on GitHub under the user UDP. It&#8217;s an open source, ansi complient that we use in test.c to make sure the file we generate is a valid json file.</p>
+</div>
+<div class="section" id="test-c">
+<h2>Test.c :<a class="headerlink" href="#test-c" title="Permalink to this headline">¶</a></h2>
+<p>This is a testing script that checks for:</p>
+<ol class="arabic simple">
+<li>Validity of the json file</li>
+<li>Order of insertion</li>
+<li>Correct number of cards inserted in each deck</li>
+</ol>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">C Implementation</a><ul>
+<li><a class="reference internal" href="#card-c-features">Card.c Features</a></li>
+<li><a class="reference internal" href="#main-c">Main.c :</a></li>
+<li><a class="reference internal" href="#json-c">Json.c :</a></li>
+<li><a class="reference internal" href="#test-c">Test.c :</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="game_guide.html" title="previous chapter">Game Guide</a></li>
+      <li>Next: <a href="java_impl.html" title="next chapter">Java Implementation</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/c_impl.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Silvia Lara.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.9</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="_sources/c_impl.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

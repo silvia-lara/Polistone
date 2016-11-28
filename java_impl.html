@@ -1,0 +1,180 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Java Implementation &#8212; Polistone 0.1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="Polistone 0.1.0.0 documentation" href="index.html" />
+    <link rel="prev" title="C Implementation" href="c_impl.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="java-implementation">
+<h1>Java Implementation<a class="headerlink" href="#java-implementation" title="Permalink to this headline">¶</a></h1>
+<p>The JavaFX framework was used to implement the GUI.</p>
+<p>The assets were photoshopped from screenshots of the Hearthstone game.</p>
+<div class="section" id="state">
+<h2>State<a class="headerlink" href="#state" title="Permalink to this headline">¶</a></h2>
+<p>The <cite>State</cite> class serves as the Model in our MVC framework. It is completely
+agnostic to the view implementation and is not even aware of any GUI plugging.</p>
+<p>It exposes a set of <cite>Observable</cite> variables through which the GUI and hook into
+to draw the state as it changes and provides a set of API calls that the UI can
+call to move the state of the game along.</p>
+<p>Skipping most of the boring data definitions, there are a couple of interesting
+functions that allowed for a safer implementation of a class. One popular action
+that is called in many contexts is any call that might require mana. This might
+be things like playing cards or using the Hero power. The usage pattern is very
+similar in that we first have to check if the user has enough mana to perform
+the action, then we perform the action and see if the action itself was
+successful, and then finally we have to rememeber to deduct the mana if it was.
+An abstraction called <cite>withMana</cite> was written to facilitate this. Essentially,
+given a hero, the amount of mana the action takes as well as a lambda of the
+actual action, we can model the interaction described above like so:</p>
+<div class="highlight-Java"><div class="highlight"><pre><span></span><span class="kd">public</span> <span class="kd">static</span> <span class="n">Optional</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="nf">withMana</span><span class="o">(</span><span class="n">Hero</span> <span class="n">h</span><span class="o">,</span> <span class="n">Integer</span> <span class="n">i</span><span class="o">,</span> <span class="n">Function</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">,</span> <span class="n">Optional</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;&gt;</span> <span class="n">f</span><span class="o">){</span>
+      <span class="n">Optional</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">res</span><span class="o">;</span>
+      <span class="k">switch</span><span class="o">(</span><span class="n">h</span><span class="o">){</span>
+          <span class="k">case</span> <span class="n">HILLARY</span><span class="o">:</span>
+              <span class="k">if</span><span class="o">(</span><span class="n">State</span><span class="o">.</span><span class="na">getState</span><span class="o">().</span><span class="na">democratMana</span> <span class="o">-</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="o">){</span>
+                  <span class="n">res</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="na">apply</span><span class="o">((</span><span class="kt">int</span><span class="o">)</span><span class="n">State</span><span class="o">.</span><span class="na">getState</span><span class="o">().</span><span class="na">democratMana</span><span class="o">);</span>
+                  <span class="k">if</span><span class="o">(!</span><span class="n">res</span><span class="o">.</span><span class="na">isPresent</span><span class="o">()){</span>
+                      <span class="n">State</span><span class="o">.</span><span class="na">getState</span><span class="o">().</span><span class="na">democratMana</span> <span class="o">-=</span> <span class="n">i</span><span class="o">;</span>
+                  <span class="o">}</span>
+                  <span class="k">return</span> <span class="n">res</span><span class="o">;</span>
+              <span class="o">}</span>
+              <span class="k">return</span> <span class="n">Optional</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="s">&quot;Not enough mana&quot;</span><span class="o">);</span>
+          <span class="k">case</span> <span class="n">TRUMP</span><span class="o">:</span>
+              <span class="k">if</span><span class="o">(</span><span class="n">State</span><span class="o">.</span><span class="na">getState</span><span class="o">().</span><span class="na">republicanMana</span> <span class="o">-</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="o">){</span>
+                  <span class="n">res</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="na">apply</span><span class="o">((</span><span class="kt">int</span><span class="o">)</span><span class="n">State</span><span class="o">.</span><span class="na">getState</span><span class="o">().</span><span class="na">republicanMana</span><span class="o">);</span>
+                  <span class="k">if</span><span class="o">(!</span><span class="n">res</span><span class="o">.</span><span class="na">isPresent</span><span class="o">()){</span>
+                      <span class="n">State</span><span class="o">.</span><span class="na">getState</span><span class="o">().</span><span class="na">republicanMana</span> <span class="o">-=</span> <span class="n">i</span><span class="o">;</span>
+                  <span class="o">}</span>
+                  <span class="k">return</span> <span class="n">res</span><span class="o">;</span>
+              <span class="o">}</span>
+              <span class="k">return</span> <span class="n">Optional</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="s">&quot;Not enough mana&quot;</span><span class="o">);</span>
+      <span class="o">}</span>
+      <span class="k">return</span> <span class="n">Optional</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="s">&quot;Fatal error at withMana&quot;</span><span class="o">);</span>
+  <span class="o">}</span>
+</pre></div>
+</div>
+<p>We can now use this function like so:</p>
+<div class="highlight-Java"><div class="highlight"><pre><span></span><span class="n">State</span><span class="o">.</span><span class="na">withMana</span><span class="o">(</span><span class="n">HILLARY</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="n">m</span> <span class="o">-&gt;</span> <span class="o">{</span>
+  <span class="k">if</span><span class="o">(</span><span class="n">rand</span> <span class="o">%</span> <span class="mi">2</span><span class="o">){</span>
+    <span class="k">return</span> <span class="n">Optional</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="s">&quot;This action can fail randomly&quot;</span><span class="o">);</span>
+  <span class="o">}</span>
+  <span class="k">return</span> <span class="n">Optional</span><span class="o">.</span><span class="na">empty</span><span class="o">();</span>
+<span class="o">})</span>
+</pre></div>
+</div>
+<p>As long as the lambda returns with an empty optional, ie no error strings, the
+<cite>withMana</cite> function will deduct the mana.</p>
+</div>
+<div class="section" id="observables">
+<h2>Observables<a class="headerlink" href="#observables" title="Permalink to this headline">¶</a></h2>
+<p>The main workhorse of the GUI and how we avoided explicit threading for
+the GUI was by using observables.</p>
+<p>JavaFX properties are often used in conjunction with binding, a powerful
+mechanism for expressing direct relationships between variables. When objects
+participate in bindings, changes made to one object will automatically be
+reflected in another object. This can be useful in a variety of applications.
+For example, binding could be used in a bill invoice tracking program, where
+the total of all bills would automatically be updated whenever an individual
+bill is changed. Or, binding could be used in a graphical user interface (GUI)
+that automatically keeps its display synchronized with the application&#8217;s underlying data.</p>
+<p>We use it primarily to keep the game state of the board, the hand and the health
+of the different creatures in sync.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Java Implementation</a><ul>
+<li><a class="reference internal" href="#state">State</a></li>
+<li><a class="reference internal" href="#observables">Observables</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="c_impl.html" title="previous chapter">C Implementation</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/java_impl.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Silvia Lara.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.9</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="_sources/java_impl.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
